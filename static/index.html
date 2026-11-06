@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap" rel="stylesheet">
   
-  <!-- Bibliotecas para leitura de PDF e descompactação/leitura de EPUB -->
+  <!-- Bibliotecas para parsing no cliente -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
@@ -47,19 +47,20 @@
 
     <!-- Área de Leitura Principal -->
     <main class="reading-area">
-      <!-- Estado Vazio -->
+      <!-- Estado Vazio / Estante Inicial -->
       <div id="emptyState" class="empty-state">
         <div class="empty-card">
           <div class="upload-icon-wrapper">
             <img src="icon.svg" width="68" height="68" alt="Ícone">
           </div>
-          <h2>Abra um livro ou documento</h2>
-          <p>Compatível com <strong>PDF, EPUB, TXT e Markdown</strong>. Suas leituras e pausas são salvas automaticamente onde você parou.</p>
+          <h2>Sua Estante de Livros</h2>
+          <p>Adicione quantos livros quiser em <strong>EPUB, PDF, TXT ou MD</strong>. O progresso de cada um fica salvo automaticamente.</p>
           <div class="btn-group">
-            <label class="btn-primary">
-              <span>Selecionar Arquivo</span>
+            <label class="btn-primary" style="cursor:pointer;">
+              <span>+ Adicionar Livro</span>
               <input type="file" id="fileInput" accept=".txt,.md,.pdf,.epub" style="display:none;">
             </label>
+            <button id="btnAbrirEstanteVazia" class="btn-secondary">Ver Meus Livros</button>
             <button id="btnColarTexto" class="btn-secondary">Colar Texto</button>
           </div>
         </div>
@@ -68,10 +69,17 @@
       <!-- Livro Aberto -->
       <div id="readerContent" class="reader-content hidden">
         <div class="book-header">
-          <h2 id="bookTitle" class="book-title">Título do Documento</h2>
-          <div class="book-meta">
-            <span id="currentStatus">Capítulo 1 • Frase 1</span>
-            <span id="progressPercent" class="badge">0% lido</span>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+            <div>
+              <h2 id="bookTitle" class="book-title">Título do Documento</h2>
+              <div class="book-meta">
+                <span id="currentStatus">Capítulo 1 • Trecho 1</span>
+                <span id="progressPercent" class="badge">0% lido</span>
+              </div>
+            </div>
+            <button id="btnFecharLivro" class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; white-space: nowrap;">
+              📚 Trocar Livro
+            </button>
           </div>
         </div>
         <div id="textContainer" class="text-container"></div>
@@ -87,11 +95,11 @@
       <div class="player-controls">
         <div class="track-info">
           <p id="playerBookName" class="track-title">Nenhum livro aberto</p>
-          <p id="playerSubtitle" class="track-sub">Pronto para iniciar</p>
+          <p id="playerSubtitle" class="track-sub">Selecione um livro na biblioteca</p>
         </div>
 
         <div class="core-controls">
-          <button id="btnPrev" class="ctrl-btn" title="Voltar Frase (←)">
+          <button id="btnPrev" class="ctrl-btn" title="Voltar Trecho (←)">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
               <polygon points="19 20 9 12 19 4 19 20"/>
               <line x1="5" y1="19" x2="5" y2="5"/>
@@ -108,7 +116,7 @@
             </svg>
           </button>
 
-          <button id="btnNext" class="ctrl-btn" title="Avançar Frase (→)">
+          <button id="btnNext" class="ctrl-btn" title="Avançar Trecho (→)">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
               <polygon points="5 4 15 12 5 20 5 4"/>
               <line x1="19" y1="5" x2="19" y2="19"/>
@@ -124,14 +132,23 @@
     </footer>
   </div>
 
-  <!-- Modal Biblioteca -->
+  <!-- Modal Estante / Biblioteca -->
   <div id="modalBiblioteca" class="modal hidden">
     <div class="modal-card">
       <div class="modal-header">
-        <h3>Biblioteca Gatti Leituras</h3>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <h3 style="margin:0;">Minha Biblioteca</h3>
+          <span id="badgeTotalLivros" class="badge">0 livros</span>
+        </div>
         <button class="close-btn" id="closeBib">&times;</button>
       </div>
       <div class="modal-body">
+        <div style="margin-bottom: 16px; display:flex; gap:10px;">
+          <label class="btn-primary" style="flex:1; text-align:center; padding:10px 14px; cursor:pointer;">
+            <span>+ Carregar Novo Livro</span>
+            <input type="file" id="modalFileInput" accept=".txt,.md,.pdf,.epub" style="display:none;">
+          </label>
+        </div>
         <div id="libraryList" class="library-grid"></div>
       </div>
     </div>
