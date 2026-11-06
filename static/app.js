@@ -93,14 +93,34 @@ async function extrairTextoPDF(file) {
 }
 
 async function extrairTextoEPUB(file) {
-  const book = ePub(await file.arrayBuffer());
-  await book.ready;
-  let fullText = "";
-  for (const item of book.spine.spineItems) {
-    const doc = await item.load(book.load.bind(book));
-    fullText += doc.body.innerText + "\n\n";
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const book = ePub(arrayBuffer);
+    await book.ready;
+    
+    let fullText = "";
+    
+    // Percorre cada secção do spine do livro
+    for (const item of book.spine.spineItems) {
+      try {
+        const doc = await item.load(book.load.bind(book));
+        if (doc) {
+          // Extrai o conteúdo tratando nós de texto diretamente
+          const textoCapitulo = doc.body ? (doc.body.innerText || doc.body.textContent || "") : (doc.textContent || "");
+          if (textoCapitulo.trim().length > 0) {
+            fullText += textoCapitulo.trim() + "\n\n";
+          }
+        }
+      } catch (errSec) {
+        console.warn("Aviso ao carregar secção do EPUB:", errSec);
+      }
+    }
+    
+    return fullText;
+  } catch (err) {
+    console.error("Erro crítico ao abrir EPUB:", err);
+    throw err;
   }
-  return fullText;
 }
 
 // 3. Agrupamento Natural de Texto (Sem picotar em excesso)
